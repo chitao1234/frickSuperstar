@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.0.1
 // @description  刷课!
 // @author       NIMAMA
 // @match        *://mooc1.chaoxing.com/mycourse/studentstudy*
@@ -55,7 +55,10 @@
                     }
                 } // 2 or more iframes situation is processed is the next part
 
-                let statusElements = innerDoc.querySelectorAll(STATUS_SELECTOR) || innerDoc.querySelectorAll(STATUS_SELECTOR_SECONDARY)
+                let statusElements = innerDoc.querySelectorAll(STATUS_SELECTOR)
+                if (!statusElements.length) {
+                    statusElements = innerDoc.querySelectorAll(STATUS_SELECTOR_SECONDARY)
+                }
                 console.assert(length == statusElements.length, "length != statusElements.length, got %o", [length, statusElements.length])
                 statusElements = Array.prototype.map.call(statusElements, e => e.getAttribute('aria-label'))
 
