@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Fuck Chaoxing
+// @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  刷课!
