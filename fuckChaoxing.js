@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         fuck cx
+// @name         Fuck Chaoxing
 // @namespace    http://tampermonkey.net/
-// @version      0.7
-// @description  try to fkcx!
+// @version      1.0
+// @description  刷课!
 // @author       NIMAMA
-// @include        https://mooc1.chaoxing.com/mycourse/studentstudy*
-// @include        https://mooc1.chaoxing.com/ananas/modules/video/index.html*
+// @match        *://mooc1.chaoxing.com/mycourse/studentstudy*
+// @match        *://mooc1.chaoxing.com/ananas/modules/video/index.html*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=chaoxing.com
 // @run-at       document-idle
 // @grant        none
@@ -16,34 +16,23 @@
     const INTERVAL = 2000 + Math.random() * 3000
     const TIMEOUT = 1500
     if (window.location.href.includes("studentstudy")) {
-        console.log("Father start!")
-        const IFRAME_ID = 'iframe'
-        const VIDEO_IFRAME_SELECTOR = "#ext-gen1049 > iframe"
+        const INNER_IFRAME_ID = 'iframe'
+        // const VIDEO_IFRAME_SELECTOR = "#ext-gen1050 > iframe"
+        const VIDEO_IFRAME_SELECTOR = "iframe"
         const STATUS_SELECTOR = "#ext-gen1051"
         const STATUS_SELECTOR_SECONDARY = ".ans-job-icon"
-        const STATUS_FINISHED = "任务点已完成"
+        // const STATUS_FINISHED = "任务点已完成"
         const STATUS_UNFINISHED = "任务点未完成"
         const NEXT_SELECTOR = "#prevNextFocusNext"
         const TITLE_SELECTOR = "#mainid > div.prev_title_pos > div"
         const POPUP_NEXT_SELECTOR = "#mainid > div.maskDiv.jobFinishTip.maskFadeOut > div > div.popBottom > a.nextChapter"
+
+        console.log("Father start!")
+
         let fatherFunc = function () {
-            console.log("fkcx Loaded!")
-            // let title = document.querySelector(TITLE_SELECTOR)
-            // if (title.innerHTML.includes("测试") || title.innerHTML.includes("测验")) {
-            //     console.log("Skip test!")
-            //     setInterval(() => {
-            //         let title = document.querySelector(TITLE_SELECTOR)
-            //         if (title.innerHTML.includes("测试") || title.innerHTML.includes("测验")) {
-            //             let nextElement = document.querySelector(NEXT_SELECTOR)
-            //             nextElement.click()
-            //             setTimeout(() => {
-            //                 let popupNext = document.querySelector(POPUP_NEXT_SELECTOR)
-            //                 popupNext.click()
-            //             }, TIMEOUT)
-            //         }
-            //     }, INTERVAL);
-            // }
-            setInterval(() => {
+            console.log("Father fkcx Loaded!")
+
+            let mainFunc = function () {
                 let title = document.querySelector(TITLE_SELECTOR)
                 if (title.innerHTML.includes("测试") || title.innerHTML.includes("测验")) {
                     console.log("Skip test!")
@@ -54,17 +43,46 @@
                         popupNext.click()
                     }, TIMEOUT)
                 }
-                let innerDoc = document.getElementById(IFRAME_ID).contentDocument
-                let statusElement = innerDoc.querySelectorAll(STATUS_SELECTOR) || innerDoc.querySelectorAll(STATUS_SELECTOR_SECONDARY)
-                statusElement = Array.prototype.map.call(statusElement, e=>e.getAttribute('aria-label'))
-                if (!statusElement || !statusElement.includes(STATUS_UNFINISHED)) {
+
+                let innerDoc = document.getElementById(INNER_IFRAME_ID).contentDocument
+
+                let videoIframes = innerDoc.querySelectorAll(VIDEO_IFRAME_SELECTOR)
+                videoIframes = Array.prototype.map.call(videoIframes, e => e.contentWindow)
+                let length = videoIframes.length
+                if (length == 1) {
+                    for (const innerWindow of videoIframes) {
+                        innerWindow.postMessage("start")
+                    }
+                } // 2 or more iframes situation is processed is the next part
+
+                let statusElements = innerDoc.querySelectorAll(STATUS_SELECTOR) || innerDoc.querySelectorAll(STATUS_SELECTOR_SECONDARY)
+                console.assert(length == statusElements.length, "length != statusElements.length, got %o", [length, statusElements.length])
+                statusElements = Array.prototype.map.call(statusElements, e => e.getAttribute('aria-label'))
+
+                if (!statusElements || !statusElements.includes(STATUS_UNFINISHED)) {
                     console.log("Next chapter!")
                     let nextElement = document.querySelector(NEXT_SELECTOR)
                     nextElement.click()
                 } else {
-                    // console.debug("Unfinished:", statusElement.getAttribute('aria-label'));
+                    if (length > 1) {
+                        let isPlayed = false
+                        // Assumes that the element is returned in the same order as the iframes
+                        for (let i = 0; i < length; i++) {
+                            if (isPlayed && statusElements[i].includes(STATUS_UNFINISHED)) {
+                                isPlayed = true
+                                videoIframes[i].postMessage("start")
+
+                                // console.log(`Father started video ${i}`)
+                            } else {
+                                videoIframes[i].postMessage("stop")
+
+                                // console.log(`Father stoped video ${i}`)
+                            }
+                        }
+                    }
                 }
-            }, INTERVAL);
+            }
+            setInterval(mainFunc, INTERVAL)
         }
 
         if (document.readyState === "complete") {
@@ -73,11 +91,14 @@
             window.addEventListener('load', fatherFunc, false)
         }
     } else {
-        console.log("Child start!")
         const VIDEO_SELECTOR = "video"
+
+        console.log("Child start!")
+
         let childFunc = function () {
-            console.log("child fkcx Loaded!")
-            setInterval(() => {
+            console.log("Child fkcx Loaded!")
+
+            let videoMoniterFunc = function () {
                 let videoElement = document.querySelector(VIDEO_SELECTOR)
                 if (videoElement.paused) {
                     console.log("Play video!")
@@ -87,7 +108,22 @@
                     }
                     videoElement.play()
                 }
-            }, INTERVAL)
+            }
+            let handle = -1
+            window.addEventListener('message', e => {
+                let data = e.data
+                if (data === 'stop') {
+                    console.log("Video playing stop!")
+                    if (handle != -1) {
+                        clearInterval(handle)
+                    }
+                } else if (data === 'keep-alive') {
+                    window.top.postMessage('ok')
+                } else if (data === 'start') {
+                    console.log("Video playing start!")
+                    handle = setInterval(videoMoniterFunc, INTERVAL)
+                }
+            })
         }
         if (document.readyState === "complete") {
             childFunc()
