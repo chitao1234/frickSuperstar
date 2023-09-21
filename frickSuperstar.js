@@ -27,6 +27,7 @@
         const NEXT_SELECTOR = "#prevNextFocusNext"
         const TITLE_SELECTOR = "#mainid > div.prev_title_pos > div"
         const POPUP_NEXT_SELECTOR = "#mainid > div.maskDiv.jobFinishTip.maskFadeOut > div > div.popBottom > a.nextChapter"
+        const REGEX_SKIP = /测试|测验|案例/
 
         console.log("Father start!")
 
@@ -35,7 +36,7 @@
 
             let mainFunc = function () {
                 let title = document.querySelector(TITLE_SELECTOR)
-                if (title.innerHTML.includes("测试") || title.innerHTML.includes("测验")) {
+                if (REGEX_SKIP.test(title.innerHTML)) {
                     console.log("Skip test!")
                     let nextElement = document.querySelector(NEXT_SELECTOR)
                     nextElement.click()
@@ -87,6 +88,13 @@
                 }
             }
             setInterval(mainFunc, INTERVAL)
+
+            window.addEventListener('message', e => {
+                let data = e.data
+                if (data === 'ok') {
+                    // TODO: finish keep-alive mechanism
+                }
+            })
         }
 
         if (document.readyState === "complete") {
@@ -113,7 +121,9 @@
                     videoElement.play()
                 }
             }
+
             let handle = -1
+
             window.addEventListener('message', e => {
                 let data = e.data
                 if (data === 'stop') {
