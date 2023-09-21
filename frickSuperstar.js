@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  刷课!
 // @author       NIMAMA
 // @match        *://mooc1.chaoxing.com/mycourse/studentstudy*
@@ -22,7 +22,8 @@
         const STATUS_SELECTOR = "#ext-gen1051"
         const STATUS_SELECTOR_SECONDARY = ".ans-job-icon"
         // const STATUS_FINISHED = "任务点已完成"
-        const STATUS_UNFINISHED = "任务点未完成"
+        const CLASS_FINISHED = "ans-job-finished"
+        //const STATUS_UNFINISHED = "任务点未完成"
         const NEXT_SELECTOR = "#prevNextFocusNext"
         const TITLE_SELECTOR = "#mainid > div.prev_title_pos > div"
         const POPUP_NEXT_SELECTOR = "#mainid > div.maskDiv.jobFinishTip.maskFadeOut > div > div.popBottom > a.nextChapter"
@@ -60,9 +61,9 @@
                     statusElements = innerDoc.querySelectorAll(STATUS_SELECTOR_SECONDARY)
                 }
                 console.assert(length == statusElements.length, "length != statusElements.length, got %o", [length, statusElements.length])
-                statusElements = Array.prototype.map.call(statusElements, e => e.getAttribute('aria-label'))
+                statusElements = Array.prototype.map.call(statusElements, e => e.parentElement.classList.contains(CLASS_FINISHED))
 
-                if (!statusElements || !statusElements.includes(STATUS_UNFINISHED)) {
+                if (!statusElements || !statusElements.includes(false)) {
                     console.log("Next chapter!")
                     let nextElement = document.querySelector(NEXT_SELECTOR)
                     nextElement.click()
@@ -71,7 +72,7 @@
                         let isPlayed = false
                         // Assumes that the element is returned in the same order as the iframes
                         for (let i = 0; i < length; i++) {
-                            if (isPlayed && statusElements[i].includes(STATUS_UNFINISHED)) {
+                            if (!isPlayed && !statusElements[i]) {
                                 isPlayed = true
                                 videoIframes[i].postMessage("start")
 
