@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
-// @version      1.1.0
+// @version      1.1.1
 // @description  解放双手
 // @author       NIMAMA
 // @match        *://mooc1-gray.chaoxing.com/mooc-ans/mycourse/studentstudy*
@@ -82,8 +82,6 @@
 
                 if (wait-- > 0) {
                     return
-                } else {
-                    wait = 0
                 }
 
                 let title = document.querySelector(SELECTOR_TITLE)
@@ -93,7 +91,7 @@
                     console.log("parent: skip test!")
                     let nextElement = document.querySelector(SELECTOR_NEXT)
                     nextElement.click()
-                    wait = 10
+                    wait = 3
                     return
                 }
 
@@ -135,7 +133,7 @@
                     console.log("parent: nextElement is", nextElement)
                     nextElement.click()
                     if (filtered) {
-                        wait = 10
+                        wait = 3
                         return
                     }
                 } else {
@@ -186,8 +184,22 @@
         let childFunc = function () {
             console.log("child: fkcx Loaded!")
 
+            let tryLoadUrl = function () {
+                if (window.location.href !== urlChild) {
+                    return
+                }
+                let videoElement = document.querySelector(SELECTOR_VIDEO)
+                if (!videoElement) {
+                    return
+                }
+            }
+
             let videoMoniterFunc = function () {
                 let videoElement = document.querySelector(SELECTOR_VIDEO)
+                if (!videoElement) {
+                    console.warn("child: WARNING: video not found!")
+                    return
+                }
                 urlChild = videoElement.src
                 if (videoElement.paused) {
                     console.log("child: play video!")
@@ -202,17 +214,21 @@
             let handle = -1
 
             window.addEventListener('message', e => {
+                tryLoadUrl()
                 let data = e.data
                 if (data === 'stop') {
                     console.log("child:", urlChild, "video playing stop!")
                     if (handle != -1) {
                         clearInterval(handle)
+                        handle = -1
                     }
                 } else if (data === 'keep-alive') {
                     window.top.postMessage('ok')
                 } else if (data === 'start') {
                     console.log("child:", urlChild, " video playing start!")
-                    handle = setInterval(videoMoniterFunc, INTERVAL)
+                    if (handle == -1) {
+                        handle = setInterval(videoMoniterFunc, INTERVAL)
+                    }
                 }
             })
         }
