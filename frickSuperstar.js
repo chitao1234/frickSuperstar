@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.1.2
 // @description  解放双手
 // @author       NIMAMA
 // @match        *://mooc1-gray.chaoxing.com/mooc-ans/mycourse/studentstudy*
@@ -20,7 +20,7 @@
         const SELECTOR_VIDEO_IFRAME = "iframe"
         const SELECTOR_STATUS = ".ans-job-icon"
         const CLASS_FINISHED = "ans-job-finished"
-        const SELECTOR_NEXT = ".tabtags > div:nth-child(2)"
+        const SELECTOR_NEXT = ".tabtags > div:last-child"
         const SELECTOR_TITLE = "#mainid > h1"
         const SELECTOR_POPUP_NEXT = ".prebutton"
         const REGEX_SKIP = /测试|测验|案例/
