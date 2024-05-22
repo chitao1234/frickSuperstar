@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Frick Superstar
 // @namespace    http://tampermonkey.net/
-// @version      1.1.2
+// @version      1.2.0
 // @description  解放双手
 // @author       NIMAMA
 // @match        *://mooc1-gray.chaoxing.com/mooc-ans/mycourse/studentstudy*
 // @match        *://mooc1-gray.chaoxing.com/ananas/modules/video/index.html*
+// @match        *://mooc1.chaoxing.com/mooc-ans/mycourse/studentstudy*
+// @match        *://mooc1.chaoxing.com/ananas/modules/video/index.html*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=chaoxing.com
 // @run-at       document-idle
 // @grant        none
@@ -52,6 +54,10 @@
 
                 let popupNextList = document.querySelectorAll(SELECTOR_POPUP_NEXT)
                 console.log("parent: popupNextList is", popupNextList)
+                if (!popupNextList) {
+                    console.error("parent: ERROR: popup not found! Might be detected!")
+                    location.reload();
+                }
                 let popupNext = popupNextList[0]
                 if (popupNextList.length > 1) {
                     for (let i = 0; i < popupNextList.length; i++) {
@@ -63,11 +69,6 @@
                 }
 
                 console.log("parent: popup is", popupNext)
-
-                if (!popupNext) {
-                    console.error("parent: ERROR: popup not found! Might be detected!")
-                    location.reload();
-                }
                 console.log("parent: popup display is", window.getComputedStyle(popupNext).display)
 
                 if (window.getComputedStyle(popupNext).display !== "none") {
